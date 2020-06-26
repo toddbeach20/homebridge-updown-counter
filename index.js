@@ -47,11 +47,11 @@ IndexCounter.prototype._setIndex = function(index, callback) {
 	
 class Index extends Characteristic {
 
-  constructor(max) {
+  constructor() {
     super('Index', '000000CE-0000-1000-8000-0026ABCDEF01');
     this.setProps({
       format: Formats.UINT32,
-      maxValue: max,
+      maxValue: 5,
       minValue: 0,
       minStep: 1,
       perms: [Perms.READ, Perms.WRITE, Perms.NOTIFY]
