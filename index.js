@@ -1,12 +1,14 @@
 "use strict";
 
-var Service, Characteristic, HomebridgeAPI;
+var Service, Characteristic, Formats, Perms, HomebridgeAPI;
 
 module.exports = function(homebridge) {
 
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
   HomebridgeAPI = homebridge;
+  Formats = homebridge.hap.Formats;
+  Perms = homebridge.hap.Perms;
   homebridge.registerAccessory("homebridge-index", "IndexCounter", IndexCounter);
 }
 
@@ -15,13 +17,13 @@ function IndexCounter(log, config) {
   this.name = config.name;
   this.max = config.max;
   this.time = config.time;
-  this._service = new Service.AccessoryInformation(this.name);
+  this._service = new Service('Counter', '000000CE-0000-1000-8000-0026ABCDEF02');
   
   this.cacheDirectory = HomebridgeAPI.user.persistPath();
   this.storage = require('node-persist');
   this.storage.initSync({dir:this.cacheDirectory, forgiveParseErrors: true});
   
-  let indexCustomCharacteristic = new Index(config.max);
+  let indexCustomCharacteristic = new Index();
 	
   this._service.addCharacteristic(indexCustomCharacteristic);
   indexCustomCharacteristic.on('set', this._setIndex.bind(this));
@@ -37,7 +39,7 @@ IndexCounter.prototype._setIndex = function(index, callback) {
   this.storage.setItemSync(this.name, index);
   setTimeout(function() {
     let newRand = Math.floor(Math.random() * (this.max + 1));
-    let indexCustomCharacteristic = new Index(config.max);
+    let indexCustomCharacteristic = new Index();
     let indexCharacteristic = this._service.getCharacteristic(indexCustomCharacteristic);
     this._service.setCharacteristic(indexCharacteristic, newRand);
   }.bind(this), this.time);
