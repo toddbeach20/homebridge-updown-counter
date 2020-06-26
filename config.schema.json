@@ -1,5 +1,5 @@
 {
-    "pluginAlias": "DummySwitch",
+    "pluginAlias": "IndexCounter",
     "pluginType": "accessory",
     "singular": false,
     "schema": {
@@ -10,23 +10,17 @@
                 "type": "string",
                 "required": true
             },
-            "stateful": {
-                "title": "Stateful",
-                "type": "boolean",
-                "default": false,
-                "description": "The switch remains on instead of being automatically turned off."
-            },
-            "reverse": {
-                "title": "Reverse",
-                "type": "boolean",
-                "default": false,
-                "description": "The switch's default state is on."
+            "max": {
+                "title": "Maximum Index",
+                "type": "number",
+                "default": 5,
+                "description": "The maximum index to allow"
             },
             "time": {
-                "title": "Time",
+                "title": "Reset After",
                 "type": "number",
                 "default": 1000,
-                "description": "The switch will turn off after this number of milliseconds. Not used if the switch is stateful."
+                "description": "How long to set to a new random value"
             }
         }
     }
