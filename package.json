@@ -1,6 +1,6 @@
 {
   "name": "homebridge-index-counter",
-  "version": "1.0",
+  "version": "1.0.0",
   "description": "Simple counter for Homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
