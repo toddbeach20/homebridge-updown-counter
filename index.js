@@ -1,63 +1,146 @@
 "use strict";
 
-var Service, Characteristic, Formats, Perms, HomebridgeAPI;
+var Service, Characteristic, HomebridgeAPI;
 
 module.exports = function(homebridge) {
-
-  Service = homebridge.hap.Service;
-  Characteristic = homebridge.hap.Characteristic;
-  HomebridgeAPI = homebridge;
-  Formats = homebridge.hap.Formats;
-  Perms = homebridge.hap.Perms;
-  homebridge.registerAccessory("homebridge-index", "IndexCounter", IndexCounter);
+	Service = homebridge.hap.Service;
+	Characteristic = homebridge.hap.Characteristic;
+	HomebridgeAPI = homebridge;
+	homebridge.registerAccessory("homebridge-index", "IndexCounter", IndexCounter);
 }
 
+const IndexUUID = '000000CE-0000-1000-8000-0026ABCDEF01';
+const IndexCharacteristic = function() {
+	const char = new Characteristic('Index', IndexUUID);
+	char.setProps({
+		format: Characteristic.Formats.UINT32,
+		perms: [Characteristic.Perms.PAIRED_READ, Characteristic.Perms.PAIRED_WRITE, Characteristic.Perms.NOTIFY],
+		minValue: 0,
+		maxValue: 100,
+		minStep: 1
+	});
+	char.value = char.getDefaultValue();
+	return char;
+};
+IndexCharacteristic.UUID = IndexUUID;
+
+const IncrementUUID = '000000CE-0000-1050-8000-0026ABCDE201';
+const IncrementCharacteristic = function() {
+	const char = new Characteristic('Increment', IncrementUUID);
+	char.setProps({
+		format: Characteristic.Formats.BOOL,
+		perms: [Characteristic.Perms.PAIRED_READ, Characteristic.Perms.PAIRED_WRITE, Characteristic.Perms.NOTIFY]
+	});
+	char.value = char.getDefaultValue();
+	return char;
+};
+IncrementCharacteristic.UUID = IncrementUUID;
+
+const RandomizeUUID = '102000CE-0000-1050-8900-0026ABCDE203';
+const RandomizeCharacteristic = function() {
+	const char = new Characteristic('Randomize', RandomizeUUID);
+	char.setProps({
+		format: Characteristic.Formats.BOOL,
+		perms: [Characteristic.Perms.PAIRED_READ, Characteristic.Perms.PAIRED_WRITE, Characteristic.Perms.NOTIFY]
+	});
+	char.value = char.getDefaultValue();
+	return char;
+};
+RandomizeCharacteristic.UUID = RandomizeUUID;
+
 function IndexCounter(log, config) {
-  this.log = log;
-  this.name = config.name;
-  this.max = config.max;
-  this.time = config.time;
-  this._service = new Service('Counter', '000000CE-0000-1000-8000-0026ABCDEF02');
-  
-  this.cacheDirectory = HomebridgeAPI.user.persistPath();
-  this.storage = require('node-persist');
-  this.storage.initSync({dir:this.cacheDirectory, forgiveParseErrors: true});
-  
-  let indexCustomCharacteristic = new Index();
-	
-  this._service.addCharacteristic(indexCustomCharacteristic);
-  indexCustomCharacteristic.on('set', this._setIndex.bind(this));
+	this.log = log;
+	this.name = config.name;
+	this.max = config.max;
+	this.delay = config.delay;
+	this.ignoreIncrement = false;
+	this.ignoreRandomize = false;
+	this.randomizeAfterDelay = config.randomizeAfterDelay;
+	this._service = new Service(this.name, '000000CE-0000-1000-8000-0026ABCDEF04');
+	this.cacheDirectory = HomebridgeAPI.user.persistPath();
+	this.storage = require('node-persist');
+	this.storage.initSync({dir:this.cacheDirectory, forgiveParseErrors: true});
+
+	this._service.addCharacteristic(IndexCharacteristic);
+	this._service.getCharacteristic('Index').setProps({
+		minValue: 0,
+		maxValue: this.max
+	});
+	this._service.getCharacteristic('Index').on('set', this._setCurrentIndex.bind(this));
+
+	this._service.addCharacteristic(IncrementCharacteristic);
+	this._service.getCharacteristic('Increment').on('set', this._setIncrement.bind(this));
+
+	this._service.addCharacteristic(RandomizeCharacteristic);
+	this._service.getCharacteristic('Randomize').on('set', this._setRandomize.bind(this));
+
+	var cachedState = this.storage.getItemSync(this.name);
+	if((cachedState === undefined) || (cachedState === false)) {
+		this._service.setCharacteristic('Index', 0);
+	} else {
+		this._service.setCharacteristic('Index', cachedState);
+	}
 }
 
 IndexCounter.prototype.getServices = function() {
-  return [this._service];
+	return [this._service];
 }
 
-IndexCounter.prototype._setIndex = function(index, callback) {
+IndexCounter.prototype._setCurrentIndex = function(index, callback) {
+	this.log("Setting index to " + index);
+	this.storage.setItemSync(this.name, index);
 
-  this.log("Setting index to " + index);
-  this.storage.setItemSync(this.name, index);
-  setTimeout(function() {
-    let newRand = Math.floor(Math.random() * (this.max + 1));
-    let indexCustomCharacteristic = new Index();
-    let indexCharacteristic = this._service.getCharacteristic(indexCustomCharacteristic);
-    this._service.setCharacteristic(indexCharacteristic, newRand);
-  }.bind(this), this.time);
+	if (this.randomizeAfterDelay) {
+		setTimeout(function() {
+			this.randomizeAfterDelay = false;
+			let newRand = Math.floor(Math.random() * (this.max + 1));
+			this._service.setCharacteristic('Index', newRand);
+			this.randomizeAfterDelay = true;
+		}.bind(this), this.delay);
+	}
 
-  callback();
+  	callback();
 }
-	
-class Index extends Characteristic {
 
-  constructor() {
-    super('Index', '000000CE-0000-1000-8000-0026ABCDEF01');
-    this.setProps({
-      format: Formats.UINT32,
-      maxValue: 5,
-      minValue: 0,
-      minStep: 1,
-      perms: [Perms.READ, Perms.WRITE, Perms.NOTIFY]
-    });
-    this.value = this.getDefaultValue();
-  }
+IndexCounter.prototype._setIncrement = function(on, callback) {
+	if (this.ignoreIncrement) {
+		callback();
+		this.ignoreIncrement = false;
+		return;
+	}
+
+	this.log("Incrementing");
+
+	let currentIndex = this._service.getCharacteristic('Index').value;
+	if (currentIndex < this.max) {
+		this._service.setCharacteristic('Index', (currentIndex + 1));
+	} else {
+		this._service.setCharacteristic('Index', 0);
+	}
+
+	setTimeout(function() {
+		this.ignoreIncrement = true;
+		this._service.setCharacteristic('Increment', false);
+	}.bind(this), 500);
+
+	callback();
+}
+
+IndexCounter.prototype._setRandomize = function(on, callback) {
+	if (this.ignoreRandomize) {
+		callback();
+		this.ignoreRandomize = false;
+		return;
+	}
+
+	this.log("Randomizing");
+
+	let newRand = Math.floor(Math.random() * (this.max + 1));
+	this._service.setCharacteristic('Index', newRand);
+	setTimeout(function() {
+		this.ignoreRandomize = true;
+		this._service.setCharacteristic('Randomize', false);
+	}.bind(this), 500);
+
+	callback();
 }

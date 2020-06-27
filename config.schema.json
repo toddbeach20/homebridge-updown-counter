@@ -16,11 +16,17 @@
                 "default": 5,
                 "description": "The maximum index to allow"
             },
-            "time": {
-                "title": "Reset After",
+            "randomizeAfterDelay": {
+                "title": "Randomize After Delay?",
+                "type": "boolean",
+                "default": true,
+                "description": "If set, the counter will pick a new random number after the specified delay."
+            },
+            "delay": {
+                "title": "Delay",
                 "type": "number",
-                "default": 1000,
-                "description": "How long to set to a new random value"
+                "default": 300000,
+                "description": "How long after the index is changed to randomize, in milliseconds."
             }
         }
     }

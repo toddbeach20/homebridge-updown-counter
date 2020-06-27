@@ -1,17 +1,17 @@
 {
   "name": "homebridge-index-counter",
-  "version": "0.4.1",
-  "description": "Dummy switches for Homebridge: https://github.com/nfarina/homebridge",
+  "version": "1.0",
+  "description": "Simple counter for Homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
     "homebridge-plugin"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/shamanskyh/homebridge-dummy.git"
+    "url": "git://github.com/shamanskyh/homebridge-index-counter.git"
   },
   "bugs": {
-    "url": "http://github.com/shamanskyh/homebridge-dummy/issues"
+    "url": "http://github.com/shamanskyh/homebridge-index-counter/issues"
   },
   "engines": {
     "node": ">=0.12.0",
