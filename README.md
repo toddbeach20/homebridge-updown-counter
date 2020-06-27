@@ -1,5 +1,5 @@
 
-# "Dummy Switches" Plugin
+# Homebridge Index Counter
 
 Example config.json:
 
