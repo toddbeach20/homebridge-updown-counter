@@ -1,6 +1,6 @@
 {
   "name": "homebridge-index-counter",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Simple counter for Homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
@@ -19,6 +19,5 @@
   },
   "dependencies": {
     "node-persist": "^2.1.0"
-  },
-  "publishConfig": { "registry": "https://npm.pkg.github.com/" }
+  }
 }

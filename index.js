@@ -56,7 +56,7 @@ function IndexCounter(log, config) {
 	this.ignoreIncrement = false;
 	this.ignoreRandomize = false;
 	this.randomizeAfterDelay = config.randomizeAfterDelay;
-	this._service = new Service(this.name, '000000CE-0000-1000-8000-0026ABCDEF04');
+	this._service = new Service.Switch(this.name);
 	this.cacheDirectory = HomebridgeAPI.user.persistPath();
 	this.storage = require('node-persist');
 	this.storage.initSync({dir:this.cacheDirectory, forgiveParseErrors: true});
@@ -70,6 +70,8 @@ function IndexCounter(log, config) {
 
 	this._service.addCharacteristic(IncrementCharacteristic);
 	this._service.getCharacteristic('Increment').on('set', this._setIncrement.bind(this));
+
+	this._service.getCharacteristic(Characteristic.On).on('set', this._setIncrement.bind(this));
 
 	this._service.addCharacteristic(RandomizeCharacteristic);
 	this._service.getCharacteristic('Randomize').on('set', this._setRandomize.bind(this));
@@ -121,6 +123,7 @@ IndexCounter.prototype._setIncrement = function(on, callback) {
 	setTimeout(function() {
 		this.ignoreIncrement = true;
 		this._service.setCharacteristic('Increment', false);
+		this._service.setCharacteristic(Characteristic.On, false);
 	}.bind(this), 500);
 
 	callback();
