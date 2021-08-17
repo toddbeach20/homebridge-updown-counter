@@ -53,8 +53,6 @@ function IndexCounter(log, config) {
 	this.name = config.name;
 	this.max = config.max;
 	this.delay = config.delay;
-	this.ignoreIncrement = false;
-	this.ignoreRandomize = false;
 	this.randomizeAfterDelay = config.randomizeAfterDelay;
 	this._service = new Service.Switch(this.name);
 	this.cacheDirectory = HomebridgeAPI.user.persistPath();
@@ -105,45 +103,34 @@ IndexCounter.prototype._setCurrentIndex = function(index, callback) {
 }
 
 IndexCounter.prototype._setIncrement = function(on, callback) {
-	if (this.ignoreIncrement) {
-		callback();
-		this.ignoreIncrement = false;
-		return;
+	if (on) {
+		this.log("Incrementing");
+
+		let currentIndex = this._service.getCharacteristic('Index').value;
+		if (currentIndex < this.max) {
+			this._service.setCharacteristic('Index', (currentIndex + 1));
+		} else {
+			this._service.setCharacteristic('Index', 0);
+		}
+
+		setTimeout(function() {
+			this._service.setCharacteristic('Increment', false);
+			this._service.setCharacteristic(Characteristic.On, false);
+		}.bind(this), 500);
 	}
-
-	this.log("Incrementing");
-
-	let currentIndex = this._service.getCharacteristic('Index').value;
-	if (currentIndex < this.max) {
-		this._service.setCharacteristic('Index', (currentIndex + 1));
-	} else {
-		this._service.setCharacteristic('Index', 0);
-	}
-
-	setTimeout(function() {
-		this.ignoreIncrement = true;
-		this._service.setCharacteristic('Increment', false);
-		this._service.setCharacteristic(Characteristic.On, false);
-	}.bind(this), 500);
-
 	callback();
 }
 
 IndexCounter.prototype._setRandomize = function(on, callback) {
-	if (this.ignoreRandomize) {
-		callback();
-		this.ignoreRandomize = false;
-		return;
+	if (on) {
+		this.log("Randomizing");
+
+		let newRand = Math.floor(Math.random() * (this.max + 1));
+		this._service.setCharacteristic('Index', newRand);
+		setTimeout(function() {
+			this.ignoreRandomize = true;
+			this._service.setCharacteristic('Randomize', false);
+		}.bind(this), 500);
 	}
-
-	this.log("Randomizing");
-
-	let newRand = Math.floor(Math.random() * (this.max + 1));
-	this._service.setCharacteristic('Index', newRand);
-	setTimeout(function() {
-		this.ignoreRandomize = true;
-		this._service.setCharacteristic('Randomize', false);
-	}.bind(this), 500);
-
 	callback();
 }
