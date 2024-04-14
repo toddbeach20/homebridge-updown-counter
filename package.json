@@ -1,6 +1,6 @@
 {
-  "name": "homebridge-index-counter",
-  "version": "2.0.1",
+  "name": "homebridge-updown-counter",
+  "version": "1.0.0",
   "description": "Simple counter for Homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
@@ -8,10 +8,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/shamanskyh/homebridge-index-counter.git"
+    "url": "git://github.com/toddbeach20/homebridge-index-counter.git"
   },
   "bugs": {
-    "url": "http://github.com/shamanskyh/homebridge-index-counter/issues"
+    "url": "http://github.com/todbeach20/homebridge-index-counter/issues"
   },
   "engines": {
     "node": ">=0.12.0",
