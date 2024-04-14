@@ -110,7 +110,7 @@ IndexCounter.prototype._setIncrement = function(on, callback) {
 		if (currentIndex < this.max) {
 			this._service.setCharacteristic('Index', (currentIndex + 1));
 		} else {
-			this._service.setCharacteristic('Index', 0);
+			this._service.setCharacteristic('Index', currentIndex);
 		}
 
 		setTimeout(function() {
